@@ -1,3 +1,5 @@
+# from https://www.ictshore.com/sdn/python-snmp-tutorial/
+
 from pysnmp.hlapi import *
 from pysnmp import hlapi
 import snmpFunctions
