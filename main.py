@@ -1,28 +1,26 @@
-# from https://www.ictshore.com/sdn/python-snmp-tutorial/
-
 from pysnmp.hlapi import *
-from pysnmp import hlapi
-import snmpFunctions
 
+#TODO Anderes MIB versuchen
 
+iterator = getCmd(
+    SnmpEngine(),
+    UsmUserData('user3', 'mypassword1', 'privpassword1',
+                authProtocol=usmHMACSHAAuthProtocol,
+                privProtocol=usmDESPrivProtocol),
+    UdpTransportTarget(('192.168.1.1', 161)),
+    ContextData(),
+    ObjectType(ObjectIdentity('SNMPv2-MIB', 'sysName', 0))
+)
 
-snmpV3 = hlapi.UsmUserData('user3', authKey='mypassword1',
-                  privKey='privpassword1',
-                  authProtocol=hlapi.usmHMACSHAAuthProtocol,
-                  privProtocol=hlapi.usmDESPrivProtocol)
+errorIndication, errorStatus, errorIndex, varBinds = next(iterator)
 
-print(snmpFunctions.get('192.168.1.1', ['1.3.6.1.2.1.1.5.0'], snmpV3))
+if errorIndication:
+    print(errorIndication)
 
-# Using SNMPv2c, we set the hostname of the remote device to 'SNMPHost'
-#snmpFunctions.set('192.168.1.1', {'1.3.6.1.2.1.1.5.0': 'SNMPHost'}, snmpV3)
+elif errorStatus:
+    print('%s at %s' % (errorStatus.prettyPrint(),
+                        errorIndex and varBinds[int(errorIndex) - 1][0] or '?'))
 
-print(snmpFunctions.get('192.168.1.1', ['1.3.6.1.2.1.2.2.1.8'], snmpV3))
-
-
-its = snmpFunctions.get_bulk_auto('192.168.1.1', ['1.3.6.1.2.1.2.2.1.2 ', '1.3.6.1.2.1.31.1.1.1.18'], snmpV3, '1.3.6.1.2.1.2.1.0')
-for it in its:
-    for k, v in it.items():
-        print("{0}={1}".format(k, v))
-    print('')
-
-
+else:
+    for varBind in varBinds:
+        print(' = '.join([x.prettyPrint() for x in varBind]))
